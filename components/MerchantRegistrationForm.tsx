@@ -218,11 +218,11 @@ export default function MerchantRegistrationForm() {
               ))}
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Check Collection</h3>
+              <h3 className="font-semibold mb-2">Deposit Collection</h3>
               <Input
                 type="number"
-                {...register('checkCollection')}
-                placeholder="Number of checks collected"
+                {...register('depositCollection')}
+                placeholder="Deposit Collection Amount"
               />
             </div>
           </div>
