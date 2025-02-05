@@ -381,7 +381,7 @@ export default function CollectionForm({ onSubmit }: Props) {
           />
         </div>
       </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <Label htmlFor="collectionOfficer">Collection Officer</Label>
         <Input
@@ -401,6 +401,8 @@ export default function CollectionForm({ onSubmit }: Props) {
           disabled
         />
       </div>
+        </div>
+      
 
       <div>
         <Label htmlFor="memo">Memo</Label>

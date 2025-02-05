@@ -114,6 +114,11 @@ export default function MerchantRegistrationForm() {
               placeholder="Enter area"
               className="w-full sm:w-1/3"
             />
+            <Input
+              {...register(`${type}Merchants.${index}.phoneNumber` as const)}
+              placeholder="Phone Number"
+              className="w-full sm:w-1/3"
+            />
           </div>
           <div className="flex space-x-2 mt-2 sm:mt-0">
             {fields.length > 1 && (
@@ -239,6 +244,11 @@ export default function MerchantRegistrationForm() {
                           {...register(`${cardType.toLowerCase()}Cards.${index}.cardholderName` as const)}
                           placeholder="Cardholder Name"
                           className="flex-grow"
+                        />
+                        <Input
+                          {...register(`${cardType.toLowerCase()}Cards.${index}.phoneNumber` as const)}
+                          placeholder="Phone Number"
+                          className="w-full sm:w-1/3"
                         />
                         <div className="flex space-x-2 mt-2 sm:mt-0">
                           {fields.length > 1 && (
