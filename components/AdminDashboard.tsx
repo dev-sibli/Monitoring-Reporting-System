@@ -24,6 +24,7 @@ import { AdminDashboardOverview } from './AdminDashboardOverview'
 import { MerchantRegistrationEntries } from './MerchantRegistrationEntries'
 import { DateFilter } from './DateFilter'
 import { UserCard } from './UserCard'
+import MerchantBankManagement from './merchant-bank-management'
 
 type MerchantRegistration = {
   id: string
@@ -203,6 +204,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="entries">Commission Entries</TabsTrigger>
           <TabsTrigger value="merchant-registrations">Merchant Registrations</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="merchant-bank-management">Merchant & Bank Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -253,6 +255,16 @@ export default function AdminDashboard() {
           {showCreateUserForm && (
             <CreateUserForm onSubmit={handleCreateUser} onCancel={() => setShowCreateUserForm(false)} />
           )}
+        </TabsContent>
+        <TabsContent value="merchant-bank-management">
+          <Card>
+            <CardHeader>
+              <CardTitle>Merchant & Bank Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MerchantBankManagement />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="entries">
@@ -334,14 +346,15 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="merchant-registrations">
-          <Card>
-            <CardHeader>
+          {/* <Card> */}
+            {/* <CardHeader>
               <CardTitle>Merchant Registration Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
+            </CardHeader> */}
+            {/* <CardContent>
               <MerchantRegistrationEntries entries={filteredMerchantRegistrations} users={users} />
             </CardContent>
-          </Card>
+          </Card> */}
+          <MerchantRegistrationEntries entries={filteredMerchantRegistrations} users={users} />
         </TabsContent>
 
         <TabsContent value="reports">
