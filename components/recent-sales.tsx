@@ -5,14 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function RecentSales({ entries }: { entries: CommissionEntry[] }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Collections</CardTitle>
+    <div>
+       
         <p className="text-sm text-muted-foreground">
           You made {entries.length} collections this month.
         </p>
-      </CardHeader>
-      <CardContent>
         <div className="space-y-8">
           {entries.map((entry) => (
             <div key={entry.id} className="flex items-center">
@@ -30,8 +27,8 @@ export function RecentSales({ entries }: { entries: CommissionEntry[] }) {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+     
+    </div>
   )
 }
 

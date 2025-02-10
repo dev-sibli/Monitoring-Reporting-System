@@ -25,6 +25,7 @@ import { MerchantRegistrationEntries } from './MerchantRegistrationEntries'
 import { DateFilter } from './DateFilter'
 import { UserCard } from './UserCard'
 import MerchantBankManagement from './merchant-bank-management'
+import CardDetails from './CardDetails'
 
 type MerchantRegistration = {
   id: string
@@ -97,10 +98,18 @@ export default function AdminDashboard() {
     setFilteredEntries(filtered)
   }, [filter, filteredEntriesByDate])
 
-  const handleCreateUser = (userData: Omit<User, 'id'>) => {
-    // Here you would typically make an API call to create the user
-    console.log('Creating user:', userData)
-    setShowCreateUserForm(false)
+  const handleCreateUser = async (userData: Omit<User, 'id'>) => {
+    try {
+      // In a real app, this would be an API call
+      const newUser: User = {
+        id: (users.length + 1).toString(), // Simple ID generation for demo
+        ...userData
+      }
+      setUsers(prevUsers => [...prevUsers, newUser])
+      return Promise.resolve()
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
 
   const handleEditEntry = (entry: CommissionEntry) => {
@@ -197,17 +206,18 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="dashboard">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="entries">Commission Entries</TabsTrigger>
-          <TabsTrigger value="merchant-registrations">Merchant Registrations</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="merchant-bank-management">Merchant & Bank</TabsTrigger>
+          <TabsTrigger value="entries">Entries</TabsTrigger>
+          <TabsTrigger value="merchant-registrations">Registrations</TabsTrigger>
+          <TabsTrigger value="cards">Cards</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="merchant-bank-management">Merchant & Bank Management</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="dashboard" className="space-y-4">
           <AdminDashboardOverview entries={filteredEntriesByDate} users={users} merchantRegistrations={filteredMerchantRegistrations} todaysCollection={filteredEntriesByDate} />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {users.map(user => (
@@ -244,17 +254,14 @@ export default function AdminDashboard() {
 
         <TabsContent value="users">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>User Management</CardTitle>
+              <CreateUserForm onSubmit={handleCreateUser} />
             </CardHeader>
             <CardContent>
-              <Button onClick={() => setShowCreateUserForm(true)} className="mb-4">Create User</Button>
               <UserManagement users={users} />
             </CardContent>
           </Card>
-          {showCreateUserForm && (
-            <CreateUserForm onSubmit={handleCreateUser} onCancel={() => setShowCreateUserForm(false)} />
-          )}
         </TabsContent>
         <TabsContent value="merchant-bank-management">
           <Card>
@@ -346,15 +353,11 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="merchant-registrations">
-          {/* <Card> */}
-            {/* <CardHeader>
-              <CardTitle>Merchant Registration Entries</CardTitle>
-            </CardHeader> */}
-            {/* <CardContent>
-              <MerchantRegistrationEntries entries={filteredMerchantRegistrations} users={users} />
-            </CardContent>
-          </Card> */}
           <MerchantRegistrationEntries entries={filteredMerchantRegistrations} users={users} />
+        </TabsContent>
+
+        <TabsContent value="cards">
+          <CardDetails />
         </TabsContent>
 
         <TabsContent value="reports">

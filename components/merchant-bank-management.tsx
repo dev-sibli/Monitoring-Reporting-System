@@ -150,21 +150,91 @@ export default function MerchantBankManagement() {
     return paginateData(filtered, currentPage)
   }
 
-  // Generate pagination buttons
+  // Generate pagination buttons with ellipsis
   const generatePaginationButtons = (totalItems: number) => {
     const totalPages = Math.ceil(totalItems / entriesPerPage)
+    const maxVisiblePages = 3 // Number of pages to show before ellipsis
+    const pages = []
+
+    if (totalPages <= maxVisiblePages + 2) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+
+      if (currentPage <= maxVisiblePages) {
+        // Near the start
+        for (let i = 2; i <= maxVisiblePages + 1; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      } else if (currentPage > totalPages - maxVisiblePages) {
+        // Near the end
+        pages.push('...')
+        for (let i = totalPages - maxVisiblePages; i <= totalPages; i++) {
+          pages.push(i)
+        }
+      } else {
+        // Middle - show current page and neighbors
+        pages.push('...')
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      }
+    }
+
     return (
-      <div className="flex gap-2 mt-4">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+        >
+          {'<<'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          {'<'}
+        </Button>
+        {pages.map((page, index) => (
           <Button
-            key={page}
+            key={index}
             variant={page === currentPage ? "default" : "outline"}
             size="sm"
-            onClick={() => setCurrentPage(page)}
+            onClick={() => typeof page === 'number' && setCurrentPage(page)}
+            disabled={page === '...'}
+            className={page === '...' ? 'cursor-default' : ''}
           >
             {page}
           </Button>
         ))}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          {'>'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          {'>>'}
+        </Button>
       </div>
     )
   }
@@ -193,7 +263,7 @@ export default function MerchantBankManagement() {
         </div>
       )}
 
-      <div className="flex space-x-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
         {/* Merchant Dialog */}
         <Dialog open={merchantDialogOpen} onOpenChange={setMerchantDialogOpen}>
           <DialogTrigger asChild>
@@ -275,7 +345,7 @@ export default function MerchantBankManagement() {
 
       {/* Combined Table section */}
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <Select
             value={entriesPerPage.toString()}
             onValueChange={(value) => setEntriesPerPage(Number(value))}
@@ -295,27 +365,29 @@ export default function MerchantBankManagement() {
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-[300px]"
+            className="w-full sm:w-[300px]"
           />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Merchant Name</TableHead>
-              <TableHead>Bank Name</TableHead>
-              <TableHead>Clearing Branch</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {getTableData().map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.merchant}</TableCell>
-                <TableCell>{row.bank}</TableCell>
-                <TableCell>{row.branch}</TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Merchant Name</TableHead>
+                <TableHead>Bank Name</TableHead>
+                <TableHead>Clearing Branch</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {getTableData().map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell className="whitespace-nowrap">{row.merchant}</TableCell>
+                  <TableCell className="whitespace-nowrap">{row.bank}</TableCell>
+                  <TableCell className="whitespace-nowrap">{row.branch}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {generatePaginationButtons(filterData(search).length)}
       </div>
     </div>
