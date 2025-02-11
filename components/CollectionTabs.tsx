@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CollectionForm from './CollectionForm'
 import MerchantRegistrationForm from './MerchantRegistrationForm'
 import { CommissionEntry } from '@/types/types'
+import { EmployeeView } from './employeeTargetView'
 
 type CollectionTabsProps = {
   onSubmit: (data: Omit<CommissionEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
@@ -14,7 +15,7 @@ export default function CollectionTabs({ onSubmit }: CollectionTabsProps) {
   return (
     <div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pb-2">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+        {/* <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="tracking-tight text-sm font-medium">Discount Merchant</div>
             <div className="tracking-tight text-sm font-small">Accomplished</div>
@@ -73,9 +74,10 @@ export default function CollectionTabs({ onSubmit }: CollectionTabsProps) {
             <div className="text-xl font-bold">50,000</div>
             <div className="text-xl font-bold">25,000</div>
           </div>
-        </div>
-
+        </div> */}
+  
       </div>
+      <EmployeeView/>
       <Tabs defaultValue="collection" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="collection">Collection Form</TabsTrigger>

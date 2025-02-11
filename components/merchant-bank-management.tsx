@@ -1,185 +1,131 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
+import { useState, useRef } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogTrigger 
+} from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useToast } from "@/components/ui/use-toast"
-import { CheckCircle2, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog"
+import { Pencil, Trash2, X } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { mockMerchants } from '@/utils/mockData'
 import banks from '@/utils/banks.json'
 import branches from '@/utils/branches.json'
 
 export default function MerchantBankManagement() {
-  // State for form inputs
-  const [merchantName, setMerchantName] = useState('')
-  const [bankName, setBankName] = useState('')
-  const [branchName, setBranchName] = useState('')
-
-  // State for table data
   const [merchants, setMerchants] = useState(mockMerchants)
   const [banksList, setBanksList] = useState(banks)
   const [branchesList, setBranchesList] = useState(branches)
-
-  // State for search
+  const [editingItem, setEditingItem] = useState<{ id: string; name: string; type: string } | null>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [newItemName, setNewItemName] = useState('')
+  const [addType, setAddType] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-
-  // State for pagination
-  const [entriesPerPage, setEntriesPerPage] = useState(25)
+  const [entriesPerPage, setEntriesPerPage] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
+  const searchRef = useRef<HTMLInputElement>(null)
 
-  // Add dialog open states
-  const [merchantDialogOpen, setMerchantDialogOpen] = useState(false)
-  const [bankDialogOpen, setBankDialogOpen] = useState(false)
-  const [branchDialogOpen, setBranchDialogOpen] = useState(false)
+  const handleUpdate = (type: string, oldItem: { id: string; name: string }, newName: string) => {
+    switch (type) {
+      case 'merchant':
+        setMerchants(merchants.map(m => m === oldItem.name ? newName : m))
+        break
+      case 'bank':
+        setBanksList(banksList.map(b => b.id === oldItem.id ? { ...b, name: newName } : b))
+        break
+      case 'branch':
+        setBranchesList(branchesList.map(b => b.id === oldItem.id ? { ...b, name: newName } : b))
+        break
+    }
+    setEditDialogOpen(false)
+    setEditingItem(null)
+  }
 
-  // Add message states
-  const [showMessage, setShowMessage] = useState(false)
-  const [message, setMessage] = useState({ type: '', text: '' })
-
-  const { toast } = useToast()
-
-  // Handle form submissions with notifications
-  const handleMerchantSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (merchantName.trim()) {
-        setMerchants([...merchants, merchantName])
-        setMerchantName('')
-        setMerchantDialogOpen(false)
-        setMessage({
-          type: 'success',
-          text: 'Merchant Name Added Successfully'
-        })
-        setShowMessage(true)
-        setTimeout(() => setShowMessage(false), 3000) // Hide after 3 seconds
-      }
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: 'Failed to Add Merchant'
-      })
-      setShowMessage(true)
-      setTimeout(() => setShowMessage(false), 3000)
+  const handleDelete = (type: string, id: string) => {
+    switch (type) {
+      case 'merchant':
+        setMerchants(merchants.filter(m => m !== id))
+        break
+      case 'bank':
+        setBanksList(banksList.filter(b => b.id !== id))
+        break
+      case 'branch':
+        setBranchesList(branchesList.filter(b => b.id !== id))
+        break
     }
   }
 
-  const handleBankSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (bankName.trim()) {
-        setBanksList([...banksList, bankName])
-        setBankName('')
-        setBankDialogOpen(false)
-        setMessage({
-          type: 'success',
-          text: 'Bank Name Added Successfully'
-        })
-        setShowMessage(true)
-        setTimeout(() => setShowMessage(false), 3000)
-      }
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: 'Failed to Add Bank'
-      })
-      setShowMessage(true)
-      setTimeout(() => setShowMessage(false), 3000)
+  const handleAdd = () => {
+    if (!newItemName.trim() || !addType) return
+
+    switch (addType) {
+      case 'merchant':
+        setMerchants([...merchants, newItemName])
+        break
+      case 'bank':
+        setBanksList([...banksList, { id: Date.now().toString(), name: newItemName }])
+        break
+      case 'branch':
+        setBranchesList([...branchesList, { id: Date.now().toString(), name: newItemName }])
+        break
     }
+    setNewItemName('')
+    setAddDialogOpen(false)
+    setAddType(null)
   }
 
-  const handleBranchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (branchName.trim()) {
-        setBranchesList([...branchesList, branchName])
-        setBranchName('')
-        setBranchDialogOpen(false)
-        setMessage({
-          type: 'success',
-          text: 'Clearing Branch Added Successfully'
-        })
-        setShowMessage(true)
-        setTimeout(() => setShowMessage(false), 3000)
-      }
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: 'Failed to Add Clearing Branch'
-      })
-      setShowMessage(true)
-      setTimeout(() => setShowMessage(false), 3000)
-    }
+  const filterData = (data: any[]) => {
+    return data.filter((item) => {
+      const searchTerm = search.toLowerCase()
+      const itemName = typeof item === 'string' ? item.toLowerCase() : item.name.toLowerCase()
+      return itemName.includes(searchTerm)
+    })
   }
 
-  // Filter function
-  const filterData = (search: string) => {
-    const maxLength = Math.max(merchants.length, banksList.length, branchesList.length)
-    const rows = []
-
-    for (let i = 0; i < maxLength; i++) {
-      const merchant = merchants[i] || ''
-      const bank = banksList[i] || ''
-      const branch = branchesList[i] || ''
-
-      if (
-        search === '' ||
-        merchant.toLowerCase().includes(search.toLowerCase()) ||
-        bank.toLowerCase().includes(search.toLowerCase()) ||
-        branch.toLowerCase().includes(search.toLowerCase())
-      ) {
-        rows.push({ merchant, bank, branch })
-      }
-    }
-    return rows
-  }
-
-  // Pagination function
-  const paginateData = (data: any[], page: number) => {
-    const start = (page - 1) * entriesPerPage
-    const end = start + entriesPerPage
-    return data.slice(start, end)
-  }
-
-  // Get paginated and filtered data
-  const getTableData = () => {
-    const filtered = filterData(search)
-    return paginateData(filtered, currentPage)
-  }
-
-  // Generate pagination buttons with ellipsis
   const generatePaginationButtons = (totalItems: number) => {
     const totalPages = Math.ceil(totalItems / entriesPerPage)
-    const maxVisiblePages = 3 // Number of pages to show before ellipsis
+    const maxVisiblePages = 3
     const pages = []
 
     if (totalPages <= maxVisiblePages + 2) {
-      // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
     } else {
-      // Always show first page
       pages.push(1)
-
       if (currentPage <= maxVisiblePages) {
-        // Near the start
         for (let i = 2; i <= maxVisiblePages + 1; i++) {
           pages.push(i)
         }
         pages.push('...')
         pages.push(totalPages)
       } else if (currentPage > totalPages - maxVisiblePages) {
-        // Near the end
         pages.push('...')
         for (let i = totalPages - maxVisiblePages; i <= totalPages; i++) {
           pages.push(i)
         }
       } else {
-        // Middle - show current page and neighbors
         pages.push('...')
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pages.push(i)
@@ -190,7 +136,7 @@ export default function MerchantBankManagement() {
     }
 
     return (
-      <div className="flex flex-wrap justify-center gap-2 mt-4">
+      <div className="flex justify-center space-x-2 mt-4">
         <Button
           variant="outline"
           size="sm"
@@ -202,7 +148,7 @@ export default function MerchantBankManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
           disabled={currentPage === 1}
         >
           {'<'}
@@ -210,11 +156,10 @@ export default function MerchantBankManagement() {
         {pages.map((page, index) => (
           <Button
             key={index}
-            variant={page === currentPage ? "default" : "outline"}
+            variant={currentPage === page ? "default" : "outline"}
             size="sm"
             onClick={() => typeof page === 'number' && setCurrentPage(page)}
-            disabled={page === '...'}
-            className={page === '...' ? 'cursor-default' : ''}
+            disabled={typeof page !== 'number'}
           >
             {page}
           </Button>
@@ -222,16 +167,16 @@ export default function MerchantBankManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalItems / entriesPerPage), prev + 1))}
+          disabled={currentPage === Math.ceil(totalItems / entriesPerPage)}
         >
           {'>'}
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(totalPages)}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(Math.ceil(totalItems / entriesPerPage))}
+          disabled={currentPage === Math.ceil(totalItems / entriesPerPage)}
         >
           {'>>'}
         </Button>
@@ -239,157 +184,218 @@ export default function MerchantBankManagement() {
     )
   }
 
-  return (
-    <div className="space-y-8">
-      {/* Message Box */}
-      {showMessage && (
-        <div className="fixed top-4 right-4 z-50">
-          <div className={`p-4 rounded-lg shadow-lg bg-white border ${
-            message.type === 'success' ? 'border-green-500' : 'border-red-500'
-          }`}>
-            <div className="flex items-center gap-2">
-              {message.type === 'success' ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
-              )}
-              <span className={`text-sm font-medium ${
-                message.type === 'success' ? 'text-green-700' : 'text-red-700'
-              }`}>
-                {message.text}
-              </span>
+  const TableComponent = ({ type, data, title }: { type: string, data: any[], title: string }) => {
+    const filteredData = filterData(data)
+    const start = (currentPage - 1) * entriesPerPage
+    const paginatedData = filteredData.slice(start, start + entriesPerPage)
+
+    const handleClearSearch = () => {
+      setSearch('')
+      setCurrentPage(1)
+      searchRef.current?.focus()
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <Select
+              value={entriesPerPage.toString()}
+              onValueChange={(value) => {
+                setEntriesPerPage(Number(value))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Show entries" />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 25, 50, 100].map((value) => (
+                  <SelectItem key={value} value={value.toString()}>
+                    Show {value} entries
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-col items-end gap-4 w-full sm:w-auto">
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    onClick={() => setAddType(type)}
+                    className="w-full sm:w-auto"
+                  >
+                    Add {title}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New {title}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder={`Enter ${title.toLowerCase()} name`}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => {
+                      setNewItemName('')
+                      setAddType(null)
+                      setAddDialogOpen(false)
+                    }}>Cancel</Button>
+                    <Button onClick={handleAdd}>Add</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <div className="relative w-full sm:w-[300px]">
+                <Input
+                  ref={searchRef}
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                  className="pr-8"
+                />
+                {search && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                    onClick={handleClearSearch}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        {/* Merchant Dialog */}
-        <Dialog open={merchantDialogOpen} onOpenChange={setMerchantDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">Add Merchant</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Merchant</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleMerchantSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="merchantName">Merchant Name</Label>
-                  <Input
-                    id="merchantName"
-                    value={merchantName}
-                    onChange={(e) => setMerchantName(e.target.value)}
-                    placeholder="Enter merchant name"
-                  />
-                </div>
-                <Button type="submit">Submit</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Bank Dialog */}
-        <Dialog open={bankDialogOpen} onOpenChange={setBankDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">Add Bank</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Bank</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleBankSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="bankName">Bank Name</Label>
-                  <Input
-                    id="bankName"
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    placeholder="Enter bank name"
-                  />
-                </div>
-                <Button type="submit">Submit</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Clearing Branch Dialog */}
-        <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">Add Clearing Branch</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Clearing Branch</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleBranchSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="branchName">Clearing Branch Name</Label>
-                  <Input
-                    id="branchName"
-                    value={branchName}
-                    onChange={(e) => setBranchName(e.target.value)}
-                    placeholder="Enter clearing branch name"
-                  />
-                </div>
-                <Button type="submit">Submit</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Combined Table section */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <Select
-            value={entriesPerPage.toString()}
-            onValueChange={(value) => setEntriesPerPage(Number(value))}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Show entries" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 25, 50, 100].map((value) => (
-                <SelectItem key={value} value={value.toString()}>
-                  Show {value} entries
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-[300px]"
-          />
-        </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Merchant Name</TableHead>
-                <TableHead>Bank Name</TableHead>
-                <TableHead>Clearing Branch</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {getTableData().map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell className="whitespace-nowrap">{row.merchant}</TableCell>
-                  <TableCell className="whitespace-nowrap">{row.bank}</TableCell>
-                  <TableCell className="whitespace-nowrap">{row.branch}</TableCell>
+              {paginatedData.map((item) => (
+                <TableRow key={type === 'merchant' ? item : item.id}>
+                  <TableCell>{type === 'merchant' ? item : item.name}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setEditingItem({ 
+                          id: type === 'merchant' ? item : item.id, 
+                          name: type === 'merchant' ? item : item.name,
+                          type 
+                        })
+                        setEditDialogOpen(true)
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this {title.toLowerCase()}.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(type, type === 'merchant' ? item : item.id)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-        {generatePaginationButtons(filterData(search).length)}
+        {generatePaginationButtons(filteredData.length)}
       </div>
-    </div>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Merchant & Bank Management</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Edit {editingItem?.type.charAt(0).toUpperCase() + editingItem?.type.slice(1)}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  value={editingItem?.name || ''}
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, name: e.target.value } : null)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditDialogOpen(false)
+                setEditingItem(null)
+              }}>Cancel</Button>
+              <Button onClick={() => editingItem && handleUpdate(editingItem.type, editingItem, editingItem.name)}>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Tabs defaultValue="merchants" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="merchants">Merchants</TabsTrigger>
+            <TabsTrigger value="banks">Banks</TabsTrigger>
+            <TabsTrigger value="branches">Clearing Branches</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="merchants">
+            <TableComponent type="merchant" data={merchants} title="Merchants" />
+          </TabsContent>
+
+          <TabsContent value="banks">
+            <TableComponent type="bank" data={banksList} title="Banks" />
+          </TabsContent>
+
+          <TabsContent value="branches">
+            <TableComponent type="branch" data={branchesList} title="Clearing Branches" />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   )
 }
