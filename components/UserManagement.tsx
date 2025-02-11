@@ -416,8 +416,8 @@ export default function AdminDashboard({ users }: Props) {
                       )}
                     </DialogContent>
                   </Dialog>
-                  <Button onClick={() => openSetTargetModal(user)} variant="outline">Set Target</Button>
-                  <Button onClick={() => openPerformanceReportModal(user)} variant="outline">Performance Report</Button>
+                  {/* <Button onClick={() => openSetTargetModal(user)} variant="outline">Set Target</Button>
+                  <Button onClick={() => openPerformanceReportModal(user)} variant="outline">Performance Report</Button> */}
                   <Button onClick={() => handleSuspendUser(user.id)} variant="destructive">Suspend</Button>
                   <Button onClick={() => handleDeleteUser(user.id)} variant="destructive">Delete</Button>
                 </TableCell>

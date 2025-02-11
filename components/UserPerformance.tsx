@@ -31,11 +31,11 @@ type Performance = {
 
 // Generate mock employees
 const mockEmployees: Employee[] = [
-  { id: 1, name: "John Doe" },
-  { id: 2, name: "Jane Smith" },
-  { id: 3, name: "Alice Johnson" },
-  { id: 4, name: "Bob Williams" },
-  { id: 5, name: "Charlie Brown" },
+  { id: 1, name: "Tawhid Islam" },
+  { id: 2, name: "Zafirul Islam Mondol" },
+  { id: 3, name: "Syful Islam" },
+  { id: 4, name: "Al Mumin" },
+  { id: 5, name: "Aminur Rahman" },
 ]
 
 // Mock data generator function
