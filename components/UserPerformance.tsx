@@ -54,7 +54,7 @@ const generateMockData = (year: number, month: number): Performance => {
       { id: 3, name: "Shop Visits", quantity: 10, rewardPercentage: 10, progress: randomProgress(10) },
       { id: 4, name: "Deposit Collection", quantity: 50000, rewardPercentage: 10, progress: randomProgress(50000) },
       { id: 5, name: "Credit Card Sales", quantity: 3, rewardPercentage: 10, progress: randomProgress(3) },
-      { id: 6, name: "Revenue Collection", quantity: 500000, rewardPercentage: 20, progress: randomProgress(500000) },
+      { id: 6, name: "Commission Collection", quantity: 500000, rewardPercentage: 20, progress: randomProgress(500000) },
     ],
   }
 }

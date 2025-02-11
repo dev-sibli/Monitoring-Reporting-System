@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
@@ -28,14 +27,12 @@ import {
 import { Pencil, Trash2, X } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { mockMerchants } from '@/utils/mockData'
-import banks from '@/utils/banks.json'
-import branches from '@/utils/branches.json'
+import { mockMerchants, mockBanks, mockBranches } from '@/utils/mockData'
 
 export default function MerchantBankManagement() {
   const [merchants, setMerchants] = useState(mockMerchants)
-  const [banksList, setBanksList] = useState(banks)
-  const [branchesList, setBranchesList] = useState(branches)
+  const [banksList, setBanksList] = useState(mockBanks)
+  const [branchesList, setBranchesList] = useState(mockBranches)
   const [editingItem, setEditingItem] = useState<{ id: string; name: string; type: string } | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
@@ -52,10 +49,10 @@ export default function MerchantBankManagement() {
         setMerchants(merchants.map(m => m === oldItem.name ? newName : m))
         break
       case 'bank':
-        setBanksList(banksList.map(b => b.id === oldItem.id ? { ...b, name: newName } : b))
+        setBanksList(banksList.map(b => b === oldItem.name ? newName  : b))
         break
       case 'branch':
-        setBranchesList(branchesList.map(b => b.id === oldItem.id ? { ...b, name: newName } : b))
+        setBranchesList(branchesList.map(cb => cb === oldItem.name ? newName  : cb))
         break
     }
     setEditDialogOpen(false)
@@ -68,10 +65,10 @@ export default function MerchantBankManagement() {
         setMerchants(merchants.filter(m => m !== id))
         break
       case 'bank':
-        setBanksList(banksList.filter(b => b.id !== id))
+        setBanksList(banksList.filter(b => b !== id))
         break
       case 'branch':
-        setBranchesList(branchesList.filter(b => b.id !== id))
+        setBranchesList(branchesList.filter(cb => cb !== id))
         break
     }
   }
@@ -343,11 +340,7 @@ export default function MerchantBankManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Merchant & Bank Management</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div>
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -395,7 +388,6 @@ export default function MerchantBankManagement() {
             <TableComponent type="branch" data={branchesList} title="Clearing Branches" />
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+        </div>
   )
 }
