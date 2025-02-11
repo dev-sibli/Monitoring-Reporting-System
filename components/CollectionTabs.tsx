@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CollectionForm from './CollectionForm'
 import MerchantRegistrationForm from './MerchantRegistrationForm'
 import { CommissionEntry } from '@/types/types'
-import  EmployeeTargetView from './employeeTargetView'
+import  TargetView from './TargetView'
 
 type CollectionTabsProps = {
   onSubmit: (data: Omit<CommissionEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
@@ -77,7 +77,7 @@ export default function CollectionTabs({ onSubmit }: CollectionTabsProps) {
         </div>
   
       </div> */}
-      <EmployeeTargetView/>
+      <div><TargetView/></div>
       <Tabs defaultValue="collection" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="collection">Collection Form</TabsTrigger>
