@@ -12,7 +12,7 @@ type Target = {
   progress: number
 }
 
-export function EmployeeView() {
+export default function EmployeeTargetView() {
   const [targets, setTargets] = useState<Target[]>([
     { id: 1, name: "Discount Companies", quantity: 10, rewardPercentage: 10, progress: 8 },
     { id: 2, name: "EMI Merchants", quantity: 5, rewardPercentage: 10, progress: 5 },
