@@ -26,6 +26,7 @@ import { DateFilter } from './DateFilter'
 import { UserCard } from './UserCard'
 import MerchantBankManagement from './merchant-bank-management'
 import CardDetails from './CardDetails'
+import UserPerformance from './UserPerformance'
 
 type MerchantRegistration = {
   id: string
@@ -210,6 +211,7 @@ export default function AdminDashboard() {
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="merchant-bank-management">Merchant & Bank</TabsTrigger>
           <TabsTrigger value="entries">Entries</TabsTrigger>
           <TabsTrigger value="merchant-registrations">Registrations</TabsTrigger>
@@ -260,6 +262,17 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <UserManagement users={users} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="performance">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle>User Management</CardTitle>
+              
+            </CardHeader>
+            <CardContent>
+              <UserPerformance />
             </CardContent>
           </Card>
         </TabsContent>

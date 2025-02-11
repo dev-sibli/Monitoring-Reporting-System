@@ -30,7 +30,7 @@ export default function TargetView() {
   const totalScore = targets.reduce((sum, target) => sum + calculateScore(target), 0)
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pb-0">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pb-2">
       <Card>
         <CardHeader>
           <CardTitle>Total Performance Score: {totalScore.toFixed(2)}%</CardTitle>
