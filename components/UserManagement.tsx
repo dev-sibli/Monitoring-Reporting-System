@@ -303,8 +303,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { User } from "@/types/types"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { SetTargetModal } from "@/components/SetTargetModal"
-import { PerformanceReportModal } from "@/components/PerformanceReportModal"
+import SetTargetModal from "./SetTargetModal"
+import  PerformanceReportModal from "./PerformanceReportModal"
 
 type Props = {
   users: User[]
