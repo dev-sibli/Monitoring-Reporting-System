@@ -1,290 +1,451 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react'
-import { format, isFriday, isSaturday, addDays } from 'date-fns'
-import { cn } from '@/lib/utils'
-import { mockMerchants } from '@/utils/mockData'
+import { useState } from 'react';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+} from '@/components/ui/card';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { Plus, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { format } from 'date-fns';
 
-type MerchantType = 'discount' | 'emi' | 'bogo'
+type MerchantType = 'discount' | 'emi' | 'BOGO';
+type CardType = 'credit' | 'prepaid' | 'hajj' | 'medical';
 
 type Merchant = {
-  type: MerchantType
-  name: string
-  area: string
-}
+	type: MerchantType;
+	name: string;
+	area: string;
+	phoneNumber?: string;
+};
 
 type UserVisit = {
-  merchantName: string
-  visitDate: Date
-  area: string
-}
+	merchantName: string;
+	area: string;
+	phoneNumber: string;
+};
 
-type CardCollection = {
-  cardholderName: string;
-  creditCard: string;
-  prepaidCard: string;
-  hajjCard: string;
-  medicalCard: string;
+type Card = {
+	type: CardType;
+	cardholderName: string;
+	phoneNumber?: string;
 };
 
 type FormData = {
-  discountMerchants: Merchant[]
-  emiMerchants: Merchant[]
-  bogoMerchants: Merchant[]
-  userVisits: UserVisit[]
-  checkCollection: string
-  creditCards: Array<{ cardholderName: string }>;
-  prepaidCards: Array<{ cardholderName: string }>;
-  hajjCards: Array<{ cardholderName: string }>;
-  medicalCards: Array<{ cardholderName: string }>;
-}
-
-function isHoliday(date: Date): boolean {
-  // This is a placeholder function. In a real application, you would implement
-  // logic to check against a list of Bangladesh Bank holidays.
-  return false
-}
-
-function getNextValidDate(date: Date): Date {
-  let nextDate = date
-  while (isFriday(nextDate) || isSaturday(nextDate) || isHoliday(nextDate)) {
-    nextDate = addDays(nextDate, 1)
-  }
-  return nextDate
-}
+	merchants: Merchant[];
+	userVisits: UserVisit[];
+	checkCollection: string;
+	visitDate: Date;
+	cards: Card[];
+};
 
 export default function MerchantRegistrationForm() {
-  const { register, control, handleSubmit, watch, setValue } = useForm<FormData>({
-    defaultValues: {
-      discountMerchants: [{ type: 'discount', name: '', area: '' }],
-      emiMerchants: [{ type: 'emi', name: '', area: '' }],
-      bogoMerchants: [{ type: 'bogo', name: '', area: '' }],
-      userVisits: [{ merchantName: '', visitDate: getNextValidDate(new Date()), area: '' }],
-      checkCollection: '',
-      creditCards: [{ cardholderName: '' }],
-      prepaidCards: [{ cardholderName: '' }],
-      hajjCards: [{ cardholderName: '' }],
-      medicalCards: [{ cardholderName: '' }]
-    }
-  })
-  const { fields: discountFields, append: appendDiscount, remove: removeDiscount } = useFieldArray({ control, name: "discountMerchants" })
-  const { fields: emiFields, append: appendEmi, remove: removeEmi } = useFieldArray({ control, name: "emiMerchants" })
-  const { fields: bogoFields, append: appendBogo, remove: removeBogo } = useFieldArray({ control, name: "bogoMerchants" })
-  const { fields: userVisitFields, append: appendUserVisit, remove: removeUserVisit } = useFieldArray({ control, name: "userVisits" })
+	const [showSuccessModal, setShowSuccessModal] = useState(false);
+	const [showErrorModal, setShowErrorModal] = useState(false);
+	const [errorMessage, setErrorMessage] = useState('');
 
-  const [filteredMerchants, setFilteredMerchants] = useState<string[]>([])
+	const {
+		register,
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<FormData>({
+		defaultValues: {
+			merchants: [{ type: 'discount', name: '', area: '' }],
+			userVisits: [{ merchantName: '', area: '', phoneNumber: '' }],
+			checkCollection: '',
+			visitDate: new Date(),
+			cards: [{ type: 'credit', cardholderName: '', phoneNumber: '' }],
+		},
+	});
 
-  const onSubmit = (data: FormData) => {
-    console.log(data)
-    // Here you would typically send this data to your backend
-  }
+	const {
+		fields: merchantFields,
+		append: appendMerchant,
+		remove: removeMerchant,
+	} = useFieldArray({
+		control,
+		name: 'merchants',
+	});
 
-  const handleMerchantSearch = (searchTerm: string, index: number) => {
-    if (searchTerm.length >= 2) {
-      const filtered = mockMerchants.filter(m =>
-        m.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      setFilteredMerchants(filtered)
-    } else {
-      setFilteredMerchants([])
-    }
-  }
+	const {
+		fields: userVisitFields,
+		append: appendUserVisit,
+		remove: removeUserVisit,
+	} = useFieldArray({
+		control,
+		name: 'userVisits',
+	});
 
-  const renderMerchantSection = ({ title, fields, append, remove, type }: { title: string; fields: Merchant[]; append: () => void; remove: (index: number) => void; type: MerchantType }) => (
-    <div key={title} className="space-y-4">
-      <h3 className="font-semibold text-lg">{title}</h3>
-      {fields.map((field, index) => (
-        <div key={field.id} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-          <div className="flex-grow space-y-2 sm:space-y-0 sm:space-x-2 sm:flex sm:items-center w-full">
-            <Input
-              {...register(`${type}Merchants.${index}.name` as const)}
-              placeholder="Enter name"
-              className="flex-grow"
-            />
-            <Input
-              {...register(`${type}Merchants.${index}.area` as const)}
-              placeholder="Enter area"
-              className="w-full sm:w-1/3"
-            />
-            <Input
-              {...register(`${type}Merchants.${index}.phoneNumber` as const)}
-              placeholder="Phone Number"
-              className="w-full sm:w-1/3"
-            />
-          </div>
-          <div className="flex space-x-2 mt-2 sm:mt-0">
-            {fields.length > 1 && (
-              <Button type="button" onClick={() => remove(index)} size="icon" variant="outline" className="h-10 w-10">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            {index === fields.length - 1 && (
-              <Button type="button" onClick={() => append({ type, name: '', area: '' })} size="sm" variant="outline" className="h-10">
-                <Plus className="h-4 w-4 mr-2" /> Add
-              </Button>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+	const {
+		fields: cardFields,
+		append: appendCard,
+		remove: removeCard,
+	} = useFieldArray({
+		control,
+		name: 'cards',
+	});
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-6">
-      <Card className="w-full max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>Merchant Registration</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-6">
-            {[
-              { title: "Discount Merchant", fields: discountFields, append: appendDiscount, remove: removeDiscount, type: 'discount' as const },
-              { title: "EMI Merchant", fields: emiFields, append: appendEmi, remove: removeEmi, type: 'emi' as const },
-              { title: "BOGO Merchant", fields: bogoFields, append: appendBogo, remove: removeBogo, type: 'bogo' as const }
-            ].map(({ title, fields, append, remove, type }) => (
-              renderMerchantSection({ title, fields, append, remove, type })
-            ))}
-          </div>
+	const onSubmit = (data: FormData) => {
+		try {
+			console.log(data);
+			setShowSuccessModal(true);
+			setTimeout(() => {
+				reset();
+				setShowSuccessModal(false);
+			}, 2000);
+		} catch (error) {
+			setErrorMessage('Something went wrong. Please try again.');
+			setShowErrorModal(true);
+			setTimeout(() => {
+				setShowErrorModal(false);
+			}, 2000);
+		}
+	};
 
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <h3 className="font-semibold mb-4 text-lg">Fresh Merchant Visit</h3>
-              {userVisitFields.map((field, index) => (
-                <div key={field.id} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
-                  <div className="flex-grow space-y-2 sm:space-y-0 sm:space-x-2 sm:flex sm:items-center w-full">
-                    <Input
-                      {...register(`userVisits.${index}.merchantName`)}
-                      placeholder="Merchant Name"
-                      className="flex-grow"
-                    />
-                    <Input
-                      {...register(`userVisits.${index}.area`)}
-                      placeholder="Area"
-                      className="w-full sm:w-1/3"
-                    />
-                    <Controller
-                      name={`userVisits.${index}.visitDate`}
-                      control={control}
-                      render={({ field }) => (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full sm:w-[180px] justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? format(field.value, "MMM dd, yyyy") : <span>Pick a date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(date) => field.onChange(getNextValidDate(date || new Date()))}
-                              disabled={(date) =>
-                                date < new Date() || isFriday(date) || isSaturday(date) || isHoliday(date)
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    />
-                  </div>
-                  <div className="flex space-x-2 mt-2 sm:mt-0">
-                    {userVisitFields.length > 1 && (
-                      <Button type="button" onClick={() => removeUserVisit(index)} size="icon" variant="outline" className="h-10 w-10">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {index === userVisitFields.length - 1 && (
-                      <Button type="button" onClick={() => appendUserVisit({ merchantName: '', visitDate: getNextValidDate(new Date()), area: '' })} size="sm" variant="outline" className="h-10">
-                        <Plus className="h-4 w-4 mr-2" /> Add
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Deposit Collection</h3>
-              <Input
-                type="number"
-                {...register('depositCollection')}
-                placeholder="Deposit Collection Amount"
-              />
-            </div>
-          </div>
+	const onError = () => {
+		setErrorMessage('Please fill in all required fields.');
+		setShowErrorModal(true);
+		setTimeout(() => {
+			setShowErrorModal(false);
+		}, 2000);
+	};
 
-          <div>
-            <h3 className="font-semibold mb-4 text-lg">Card Collection</h3>
-            <div className="space-y-6">
-              {['Credit', 'Prepaid', 'Hajj', 'Medical'].map((cardType) => {
-                const { fields, append, remove } = useFieldArray({
-                  control,
-                  name: `${cardType.toLowerCase()}Cards` as "creditCards" | "prepaidCards" | "hajjCards" | "medicalCards"
-                });
-                return (
-                  <div key={cardType} className="space-y-2">
-                    <h4 className="text-sm font-medium">{cardType} Card</h4>
-                    {fields.map((field, index) => (
-                      <div key={field.id} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                        <Input
-                          {...register(`${cardType.toLowerCase()}Cards.${index}.cardholderName` as const)}
-                          placeholder="Cardholder Name"
-                          className="flex-grow"
-                        />
-                        <Input
-                          {...register(`${cardType.toLowerCase()}Cards.${index}.phoneNumber` as const)}
-                          placeholder="Phone Number"
-                          className="w-full sm:w-1/3"
-                        />
-                        <div className="flex space-x-2 mt-2 sm:mt-0">
-                          {fields.length > 1 && (
-                            <Button
-                              type="button"
-                              onClick={() => remove(index)}
-                              size="icon"
-                              variant="outline"
-                              className="h-10 w-10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {index === fields.length - 1 && (
-                            <Button
-                              type="button"
-                              onClick={() => append({ cardholderName: '' })}
-                              size="sm"
-                              variant="outline"
-                              className="h-10"
-                            >
-                              <Plus className="h-4 w-4 mr-2" /> Add
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Button type="submit" className="w-full max-w-3xl mx-auto block">Submit</Button>
-    </form>
-  )
+	return (
+		<>
+			<form
+				onSubmit={handleSubmit(onSubmit, onError)}
+				className="container mx-auto p-4 max-w-4xl"
+			>
+				<Card className="shadow-lg">
+					<CardHeader className="border-b bg-muted/40 pb-4">
+						<CardTitle className="text-2xl">Merchant Registration</CardTitle>
+						<CardDescription>
+							Register new merchants and collect card information
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-8 pt-6">
+						{/* Merchant Details Section */}
+						<div className="space-y-6">
+							<div className="flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Merchant Details</h3>
+								<Button
+									type="button"
+									onClick={() =>
+										appendMerchant({
+											type: 'discount',
+											name: '',
+											area: '',
+										})
+									}
+									size="sm"
+									variant="outline"
+								>
+									<Plus className="h-4 w-4 mr-2" /> Add Merchant
+								</Button>
+							</div>
+							<div className="grid gap-6">
+								{merchantFields.map((field, index) => (
+									<Card key={field.id} className="p-4 relative">
+										{merchantFields.length > 1 && (
+											<Button
+												type="button"
+												onClick={() => removeMerchant(index)}
+												size="icon"
+												variant="ghost"
+												className="absolute right-2 top-2"
+											>
+												<Trash2 className="h-4 w-4 text-destructive" />
+											</Button>
+										)}
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Merchant Type</Label>
+												<Controller
+													control={control}
+													name={`merchants.${index}.type`}
+													rules={{ required: true }}
+													render={({ field: { onChange, value } }) => (
+														<Select onValueChange={onChange} value={value}>
+															<SelectTrigger>
+																<SelectValue placeholder="Select type" />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="discount">
+																	Discount
+																</SelectItem>
+																<SelectItem value="emi">EMI</SelectItem>
+																<SelectItem value="BOGO">BOGO</SelectItem>
+															</SelectContent>
+														</Select>
+													)}
+												/>
+											</div>
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Merchant Name</Label>
+												<Input
+													{...register(`merchants.${index}.name`, {
+														required: true,
+													})}
+													placeholder="Enter name"
+												/>
+											</div>
+											<div className="sm:col-span-1">
+												<Label>Area</Label>
+												<Input
+													{...register(`merchants.${index}.area`, {
+														required: true,
+													})}
+													placeholder="Enter area"
+												/>
+											</div>
+											<div className="sm:col-span-1">
+												<Label>Phone Number</Label>
+												<Input
+													{...register(`merchants.${index}.phoneNumber`)}
+													placeholder="Phone Number"
+												/>
+											</div>
+										</div>
+									</Card>
+								))}
+							</div>
+						</div>
+
+						{/* Card Collection Section */}
+						<div className="space-y-6">
+							<div className="flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Card Collection</h3>
+								<Button
+									type="button"
+									onClick={() =>
+										appendCard({
+											type: 'credit',
+											cardholderName: '',
+											phoneNumber: '',
+										})
+									}
+									size="sm"
+									variant="outline"
+								>
+									<Plus className="h-4 w-4 mr-2" /> Add Card
+								</Button>
+							</div>
+							<div className="grid gap-6">
+								{cardFields.map((field, index) => (
+									<Card key={field.id} className="p-4 relative">
+										{cardFields.length > 1 && (
+											<Button
+												type="button"
+												onClick={() => removeCard(index)}
+												size="icon"
+												variant="ghost"
+												className="absolute right-2 top-2"
+											>
+												<Trash2 className="h-4 w-4 text-destructive" />
+											</Button>
+										)}
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Card Type</Label>
+												<Controller
+													control={control}
+													name={`cards.${index}.type`}
+													rules={{ required: true }}
+													render={({ field: { onChange, value } }) => (
+														<Select onValueChange={onChange} value={value}>
+															<SelectTrigger>
+																<SelectValue placeholder="Select card type" />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="credit">
+																	Credit Card
+																</SelectItem>
+																<SelectItem value="prepaid">
+																	Prepaid Card
+																</SelectItem>
+																<SelectItem value="hajj">Hajj Card</SelectItem>
+																<SelectItem value="medical">
+																	Medical Card
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													)}
+												/>
+											</div>
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Cardholder Name</Label>
+												<Input
+													{...register(`cards.${index}.cardholderName`, {
+														required: true,
+													})}
+													placeholder="Cardholder Name"
+												/>
+											</div>
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Phone Number</Label>
+												<Input
+													{...register(`cards.${index}.phoneNumber`)}
+													placeholder="Phone Number"
+												/>
+											</div>
+										</div>
+									</Card>
+								))}
+							</div>
+						</div>
+
+						{/* Fresh Merchant Visit Section */}
+						<div className="space-y-6">
+							<div className="flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Fresh Merchant Visit</h3>
+								<Button
+									type="button"
+									onClick={() =>
+										appendUserVisit({
+											merchantName: '',
+											area: '',
+											phoneNumber: '',
+										})
+									}
+									size="sm"
+									variant="outline"
+								>
+									<Plus className="h-4 w-4 mr-2" /> Add Visit
+								</Button>
+							</div>
+							<div className="grid gap-6">
+								{userVisitFields.map((field, index) => (
+									<Card key={field.id} className="p-4 relative">
+										{userVisitFields.length > 1 && (
+											<Button
+												type="button"
+												onClick={() => removeUserVisit(index)}
+												size="icon"
+												variant="ghost"
+												className="absolute right-2 top-2"
+											>
+												<Trash2 className="h-4 w-4 text-destructive" />
+											</Button>
+										)}
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											<div className="sm:col-span-2 lg:col-span-1">
+												<Label>Merchant Name</Label>
+												<Input
+													{...register(`userVisits.${index}.merchantName`, {
+														required: true,
+													})}
+													placeholder="Merchant Name"
+												/>
+											</div>
+											<div className="sm:col-span-1">
+												<Label>Area</Label>
+												<Input
+													{...register(`userVisits.${index}.area`, {
+														required: true,
+													})}
+													placeholder="Area"
+												/>
+											</div>
+											<div className="sm:col-span-1">
+												<Label>Phone Number</Label>
+												<Input
+													{...register(`userVisits.${index}.phoneNumber`, {
+														required: true,
+													})}
+													placeholder="Phone Number"
+												/>
+											</div>
+										</div>
+									</Card>
+								))}
+							</div>
+						</div>
+
+						{/* Deposit Collection Section */}
+						<div className="space-y-4">
+							<h3 className="text-lg font-semibold">Deposit Collection</h3>
+							<Card className="p-4">
+								<div className="grid gap-6 sm:grid-cols-2">
+									<div>
+										<Label>Amount</Label>
+										<Input
+											type="number"
+											{...register('checkCollection', { required: true })}
+											placeholder="Enter deposit amount"
+										/>
+									</div>
+									<div>
+										<Label>Visit Date</Label>
+										<Input
+											value={format(new Date(), 'EEEE, MMM dd, yyyy')}
+											readOnly
+											className="bg-muted"
+										/>
+									</div>
+								</div>
+							</Card>
+						</div>
+					</CardContent>
+				</Card>
+				<Button
+					type="submit"
+					className="w-full mt-6 py-6 text-lg font-semibold"
+				>
+					Submit Registration
+				</Button>
+			</form>
+
+			{/* Success Modal */}
+			<Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+				<DialogContent className="sm:max-w-md text-center">
+					<DialogHeader>
+						<DialogTitle className="flex items-center justify-center gap-2 text-green-600">
+							<CheckCircle2 className="h-8 w-8" />
+							Success
+						</DialogTitle>
+						<DialogDescription className="text-center py-4 text-lg">
+							Your submission has been successful!
+						</DialogDescription>
+					</DialogHeader>
+				</DialogContent>
+			</Dialog>
+
+			{/* Error Modal */}
+			<Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+				<DialogContent className="sm:max-w-md text-center">
+					<DialogHeader>
+						<DialogTitle className="flex items-center justify-center gap-2 text-red-600">
+							<XCircle className="h-8 w-8" />
+							Error
+						</DialogTitle>
+						<DialogDescription className="text-center py-4 text-lg">
+							{errorMessage}
+						</DialogDescription>
+					</DialogHeader>
+				</DialogContent>
+			</Dialog>
+		</>
+	);
 }
-
